@@ -1,13 +1,18 @@
 #![doc = include_str!("../README.md")]
 #![no_std]
 #![cfg_attr(feature = "allocator_api", feature(allocator_api, alloc_layout_extra))]
+extern crate alloc;
 
+mod zemu;
+
+use alloc::string::ToString;
 use core::alloc::{GlobalAlloc, Layout};
 use core::cell::RefCell;
 use core::ptr::{self, NonNull};
 
 use critical_section::Mutex;
 use linked_list_allocator::Heap as LLHeap;
+use crate::zemu::{z_check_app_canary, zlog, zlog_stack};
 
 pub struct Heap {
     heap: Mutex<RefCell<LLHeap>>,
@@ -68,7 +73,26 @@ impl Heap {
     }
 
     fn alloc_first_fit(&self, layout: Layout) -> Result<NonNull<u8>, ()> {
-        critical_section::with(|cs| self.heap.borrow(cs).borrow_mut().allocate_first_fit(layout))
+        zlog("before alloc\0");
+        self.log_stats();
+
+        let pointer = critical_section::with(|cs| self.heap.borrow(cs).borrow_mut().allocate_first_fit(layout));
+
+        zlog("after alloc\0");
+        self.log_stats();
+
+        pointer
+    }
+
+    fn log_stats(&self){
+        let mut free = self.free().to_string();
+        let mut used = self.used().to_string();
+        free.push('\0');
+        used.push('\0');
+
+        z_check_app_canary();
+        zlog_stack(free.as_str());
+        zlog_stack(used.as_str());
     }
 }
 
@@ -80,12 +104,18 @@ unsafe impl GlobalAlloc for Heap {
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        zlog("before dealloc\0");
+        self.log_stats();
+
         critical_section::with(|cs| {
             self.heap
                 .borrow(cs)
                 .borrow_mut()
                 .deallocate(NonNull::new_unchecked(ptr), layout)
         });
+
+        zlog("after dealloc\0");
+        self.log_stats();
     }
 }
 
