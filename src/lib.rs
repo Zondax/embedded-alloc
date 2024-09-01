@@ -105,6 +105,7 @@ unsafe impl GlobalAlloc for Heap {
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
         zlog_stack("before dealloc\0");
         self.log_stats();
+        zlog_num("to deallocate\0", layout.size() as u32);
 
         critical_section::with(|cs| {
             self.heap
