@@ -75,6 +75,7 @@ impl Heap {
     fn alloc_first_fit(&self, layout: Layout) -> Result<NonNull<u8>, ()> {
         zlog_stack("before alloc\0");
         self.log_stats();
+        zlog_num("to allocate\0", layout.size() as u32);
 
         let pointer = critical_section::with(|cs| self.heap.borrow(cs).borrow_mut().allocate_first_fit(layout));
 
