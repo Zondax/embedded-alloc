@@ -12,7 +12,7 @@ use core::ptr::{self, NonNull};
 
 use critical_section::Mutex;
 use linked_list_allocator::Heap as LLHeap;
-use crate::zemu::{z_check_app_canary, zlog_stack};
+use crate::zemu::{z_check_app_canary, zlog_num, zlog_stack};
 
 pub struct Heap {
     heap: Mutex<RefCell<LLHeap>>,
@@ -85,14 +85,12 @@ impl Heap {
     }
 
     fn log_stats(&self){
-        //let mut free = self.free().to_string();
-        //let mut used = self.used().to_string();
-        //free.push('\0');
-        //used.push('\0');
+        let free = self.free();
+        let used = self.used();
 
         z_check_app_canary();
-        //zlog_stack_stack(free.as_str());
-        //zlog_stack_stack(used.as_str());
+        zlog_num("free", free as u32);
+        zlog_num("used", used as u32);
     }
 }
 
