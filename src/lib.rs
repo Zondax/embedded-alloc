@@ -89,8 +89,8 @@ impl Heap {
         let used = self.used();
 
         z_check_app_canary();
-        zlog_num("free", free as u32);
-        zlog_num("used", used as u32);
+        zlog_num("free\0", free as u32);
+        zlog_num("used\0", used as u32);
     }
 }
 
