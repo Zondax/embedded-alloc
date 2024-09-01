@@ -12,7 +12,7 @@ use core::ptr::{self, NonNull};
 
 use critical_section::Mutex;
 use linked_list_allocator::Heap as LLHeap;
-use crate::zemu::{z_check_app_canary, zlog, zlog_stack};
+use crate::zemu::{z_check_app_canary, zlog_stack};
 
 pub struct Heap {
     heap: Mutex<RefCell<LLHeap>>,
@@ -73,12 +73,12 @@ impl Heap {
     }
 
     fn alloc_first_fit(&self, layout: Layout) -> Result<NonNull<u8>, ()> {
-        zlog("before alloc\0");
+        zlog_stack("before alloc\0");
         self.log_stats();
 
         let pointer = critical_section::with(|cs| self.heap.borrow(cs).borrow_mut().allocate_first_fit(layout));
 
-        zlog("after alloc\0");
+        zlog_stack("after alloc\0");
         self.log_stats();
 
         pointer
@@ -91,8 +91,8 @@ impl Heap {
         //used.push('\0');
 
         z_check_app_canary();
-        //zlog_stack(free.as_str());
-        //zlog_stack(used.as_str());
+        //zlog_stack_stack(free.as_str());
+        //zlog_stack_stack(used.as_str());
     }
 }
 
@@ -104,7 +104,7 @@ unsafe impl GlobalAlloc for Heap {
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-        zlog("before dealloc\0");
+        zlog_stack("before dealloc\0");
         self.log_stats();
 
         critical_section::with(|cs| {
@@ -114,7 +114,7 @@ unsafe impl GlobalAlloc for Heap {
                 .deallocate(NonNull::new_unchecked(ptr), layout)
         });
 
-        zlog("after dealloc\0");
+        zlog_stack("after dealloc\0");
         self.log_stats();
     }
 }
