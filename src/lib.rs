@@ -85,14 +85,14 @@ impl Heap {
     }
 
     fn log_stats(&self){
-        let mut free = self.free().to_string();
-        let mut used = self.used().to_string();
-        free.push('\0');
-        used.push('\0');
+        //let mut free = self.free().to_string();
+        //let mut used = self.used().to_string();
+        //free.push('\0');
+        //used.push('\0');
 
         z_check_app_canary();
-        zlog_stack(free.as_str());
-        zlog_stack(used.as_str());
+        //zlog_stack(free.as_str());
+        //zlog_stack(used.as_str());
     }
 }
 
