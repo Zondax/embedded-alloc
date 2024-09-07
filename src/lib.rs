@@ -97,9 +97,16 @@ impl Heap {
 
 unsafe impl GlobalAlloc for Heap {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        self.alloc_first_fit(layout)
-            .ok()
-            .map_or(ptr::null_mut(), |allocation| allocation.as_ptr())
+        let a = self.alloc_first_fit(layout)
+            .ok();
+
+        match a {
+            None => {
+                zlog_stack("alloc null ptr\0");
+                ptr::null_mut()
+            },
+            Some(allocation) => allocation.as_ptr()
+        }
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
